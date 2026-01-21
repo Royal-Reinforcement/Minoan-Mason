@@ -30,18 +30,33 @@ else:
     st.info('Generate a Minoan quote based on the Royal Destinations template.')
 
     df = smartsheet_to_dataframe(st.secrets['smartsheet']['sheets']['template'])
-    df = df.drop(columns=['Quantity']) 
     df['ID'] = df.index + 1
 
     with st.form("item_form"):
-        inputs = {}
+        inputs   = {}
+        category = None
 
         for _, row in df.iterrows():
-            item_id         = row['ID']
-            item_name       = row['Product Name'].replace(' ¬Æ ', ' ').replace(' ‚Ñ¢ ', ' ')
-            item_variant    = row['Variant']
-            title           = f'**{item_name}** | {item_variant}'
-            key             = f'{item_name} - {item_variant}'
+
+            if row['Product Name'] is None:
+                continue
+
+            if row['Category'] != category:
+                category = row['Category']
+                st.subheader(category)
+
+
+            item_id          = row['ID']
+            item_name        = row['Breezeway Name']
+            item_actual_name = row['Product Name']
+            item_quantity    = row['Pack Quantity']
+            item_variant     = row['Variant']
+            title            = f'{item_name}'
+
+            if pd.notna(item_quantity) and item_quantity > 1:
+                title += f' | **Order will be for a pack of {int(item_quantity)}**'
+
+            key              = f'{item_actual_name} - {item_variant}'
             
             inputs[item_id] = st.number_input(
                 label=title,
